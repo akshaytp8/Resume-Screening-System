@@ -1,0 +1,25 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Streamlit secrets (if you ever add any)
+.streamlit/secrets.toml
+
+# Runtime data - auto-generated the first time the app runs.
+# The screening history and any uploaded resume PDFs are local to
+# whoever is running the app, so they shouldn't be committed.
+database.db
+uploaded_resumes/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

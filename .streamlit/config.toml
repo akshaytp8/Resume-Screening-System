@@ -1,0 +1,8 @@
+[theme]
+# A deep-teal palette rather than a generic default, to fit a
+# "screening / verification" tool rather than a generic AI-purple app.
+primaryColor = "#0F766E"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F5F4"
+textColor = "#1E293B"
+font = "sans serif"

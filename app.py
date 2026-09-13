@@ -1,21 +1,3 @@
-"""
-app.py
-------
-Streamlit frontend for the Intelligent Resume Screening System.
-
-What it does:
-1. Collects candidate details (experience, education, skills,
-   certifications, projects) plus an optional resume PDF.
-2. Feeds the structured features into the trained ANN (model.h5) to
-   predict a Resume Score out of 100.
-3. Buckets the score into Excellent / Good / Average / Needs Improvement.
-4. Saves every screening to a local SQLite database and shows past
-   results in a "Screening History" tab.
-
-Run:
-    streamlit run app.py
-"""
-
 import os
 import json
 
@@ -52,17 +34,11 @@ st.set_page_config(
 )
 
 
-# ----------------------------------------------------------------------
-# Cached resources - loaded once per session instead of on every rerun
-# ----------------------------------------------------------------------
+
 @st.cache_resource
 def load_model_and_scaler():
     if not (os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH)):
         return None, None
-    # compile=False: the app only runs inference (model.predict), never
-    # trains further, so we don't need the optimizer/loss state restored.
-    # This also sidesteps a Keras HDF5-loading bug where the saved "mse"
-    # metric config fails to deserialize on load.
     model = keras.models.load_model(MODEL_PATH, compile=False)
     scaler = joblib.load(SCALER_PATH)
     return model, scaler
@@ -71,17 +47,10 @@ def load_model_and_scaler():
 init_db()
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 model, scaler = load_model_and_scaler()
-
-# Streamlit reruns the whole script on every interaction (every click,
-# every keystroke in some widgets). We stash the latest prediction in
-# session_state so the result panel doesn't disappear on the next rerun.
 if "last_result" not in st.session_state:
     st.session_state.last_result = None
 
 
-# ----------------------------------------------------------------------
-# Sidebar
-# ----------------------------------------------------------------------
 with st.sidebar:
     st.header("About")
     st.write(
@@ -108,9 +77,6 @@ with st.sidebar:
     )
 
 
-# ----------------------------------------------------------------------
-# Main
-# ----------------------------------------------------------------------
 st.title("🧠 Intelligent Resume Screening System")
 st.caption("ANN-powered resume scoring, built with TensorFlow/Keras & Streamlit")
 
@@ -123,9 +89,7 @@ if model is None:
 
 tab_screen, tab_history = st.tabs(["🔍 Screen a Candidate", "📊 Screening History"])
 
-# =====================================================================
-# TAB 1 - Screen a candidate
-# =====================================================================
+
 with tab_screen:
     col_form, col_result = st.columns([1.1, 1], gap="large")
 
@@ -239,9 +203,7 @@ with tab_screen:
         else:
             st.info("Fill in the candidate details and click **Predict Resume Score**.")
 
-# =====================================================================
-# TAB 2 - History
-# =====================================================================
+
 with tab_history:
     st.subheader("Previous screenings")
     history_df = fetch_all_predictions()

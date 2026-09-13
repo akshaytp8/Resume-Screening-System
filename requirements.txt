@@ -1,24 +1,9 @@
-# Intelligent Resume Screening System - dependencies
-# Tested with Python 3.12. Install with:
-#     pip install -r requirements.txt
-
-# Deep learning
-tensorflow==2.21.0        # includes Keras 3.x
-h5py==3.14.0               # needed to save/load the model.h5 file
-
-# Data handling
+tensorflow==2.21.0        
+h5py==3.14.0              
 pandas==3.0.2
 numpy==2.4.4
-
-# Machine learning utilities
 scikit-learn==1.8.0
-joblib==1.5.3               # used to persist the fitted StandardScaler
-
-# Frontend
+joblib==1.5.3             
 streamlit==1.61.1
-
-# PDF text preview (resume upload)
 pypdf==5.9.0
-
-# Training curve plot
 matplotlib==3.10.8

@@ -27,13 +27,13 @@ I'm using [this dataset from Kaggle](https://www.kaggle.com/datasets/mdtalhask/a
 ## Model
 
 Input(5 features)
-↓
+
 Dense(64, ReLU)
-↓
+
 Dropout(0.2)
-↓
+
 Dense(32, ReLU)
-↓
+
 Dense(1, Linear)
 
 

@@ -1,26 +1,3 @@
-"""
-train_model.py
----------------
-Trains a simple feed-forward Artificial Neural Network (ANN) that predicts
-a candidate's Resume Score (0-100) from five structured features:
-
-    Years of Experience, Education Level, Number of Skills,
-    Certifications, Projects
-
-No public dataset is required: if dataset/resumes.csv doesn't exist yet,
-a realistic SYNTHETIC dataset is generated automatically on first run.
-
-Usage:
-    python train_model.py
-
-Outputs (all written to the project root):
-    dataset/resumes.csv     - the training data (generated if missing)
-    model.h5                - the trained Keras model
-    scaler.pkl              - the fitted StandardScaler (needed at inference time)
-    metrics.json             - MAE / RMSE / R2 on the held-out test set
-    training_history.png     - training vs validation loss curve
-"""
-
 import os
 import json
 from datetime import datetime
@@ -28,7 +5,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import matplotlib
-matplotlib.use("Agg")  # headless - just save the plot, don't try to open a window
+matplotlib.use("Agg")  
 import matplotlib.pyplot as plt
 import joblib
 
@@ -42,9 +19,6 @@ from tensorflow.keras import layers
 
 from utils.preprocess import EDUCATION_MAP
 
-# ----------------------------------------------------------------------
-# Reproducibility - same seed => same dataset & same trained weights
-# ----------------------------------------------------------------------
 SEED = 42
 np.random.seed(SEED)
 tf.random.set_seed(SEED)
@@ -57,9 +31,6 @@ METRICS_PATH = "metrics.json"
 HISTORY_PLOT_PATH = "training_history.png"
 
 
-# ----------------------------------------------------------------------
-# 1. Dataset
-# ----------------------------------------------------------------------
 def generate_synthetic_dataset(n_samples=3000, random_seed=SEED):
     """
     Build a realistic synthetic resume dataset.
@@ -73,19 +44,17 @@ def generate_synthetic_dataset(n_samples=3000, random_seed=SEED):
     """
     rng = np.random.default_rng(random_seed)
 
-    # Years of experience: right-skewed - most candidates are early/mid career
+
     years_experience = np.round(rng.gamma(shape=2.0, scale=2.4, size=n_samples), 1)
     years_experience = np.clip(years_experience, 0, 25)
 
-    # Education level: categorical, weighted towards Bachelor's / Master's
+  
     education_levels = list(EDUCATION_MAP.keys())
     education_weights = [0.05, 0.15, 0.45, 0.28, 0.07]
     education = rng.choice(education_levels, size=n_samples, p=education_weights)
     education_encoded = np.array([EDUCATION_MAP[e] for e in education])
 
-    # Skills / certifications / projects: Poisson counts whose average
-    # rises a little with experience & education (realistic correlation,
-    # not just independent random noise)
+
     num_skills = rng.poisson(lam=5 + education_encoded * 1.1 + years_experience * 0.25)
     num_skills = np.clip(num_skills, 1, 30)
 
@@ -95,7 +64,6 @@ def generate_synthetic_dataset(n_samples=3000, random_seed=SEED):
     projects = rng.poisson(lam=2.0 + years_experience * 0.35 + education_encoded * 0.3)
     projects = np.clip(projects, 0, 20)
 
-    # Weighted combination -> raw score, then rescaled to a 0-100 band
     raw_score = (
         years_experience * 2.0
         + education_encoded * 7.0
@@ -105,12 +73,6 @@ def generate_synthetic_dataset(n_samples=3000, random_seed=SEED):
         + rng.normal(0, 5, n_samples)  # noise, so it isn't perfectly predictable
     )
 
-    # Rescale using the 3rd/97th percentile (not the raw min/max) so a
-    # handful of extreme outliers (e.g. 25 years of experience) don't
-    # compress everyone else into the bottom of the range. The middle
-    # 94% of candidates get spread across the full 0-100 band, and only
-    # the true extremes clip at 0 or 100 - which is how a real scoring
-    # rubric behaves.
     lo, hi = np.percentile(raw_score, [3, 97])
     score = (raw_score - lo) / (hi - lo) * 100
     score = np.clip(np.round(score, 2), 0, 100)
@@ -138,9 +100,7 @@ def load_dataset():
     return generate_synthetic_dataset()
 
 
-# ----------------------------------------------------------------------
-# 2. Preprocessing
-# ----------------------------------------------------------------------
+
 def preprocess(df):
     """Encode Education_Level and split into X (features) / y (target)."""
     df = df.copy()
@@ -152,10 +112,6 @@ def preprocess(df):
     y = df["Resume_Score"].values.astype(float)
     return X, y
 
-
-# ----------------------------------------------------------------------
-# 3. Model - exactly the architecture from the project spec
-# ----------------------------------------------------------------------
 def build_model(input_dim):
     """
     Simple feed-forward ANN:
@@ -172,9 +128,7 @@ def build_model(input_dim):
     return model
 
 
-# ----------------------------------------------------------------------
-# 4. Main training routine
-# ----------------------------------------------------------------------
+
 def main():
     df = load_dataset()
     print("\nDataset summary:")
@@ -186,9 +140,7 @@ def main():
         X, y, test_size=0.2, random_state=SEED
     )
 
-    # Feature scaling matters a lot for neural networks: without it, a
-    # large-range feature like Years_of_Experience can dominate training
-    # over a small-range one like Certifications.
+
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
@@ -210,9 +162,6 @@ def main():
         verbose=1,
     )
 
-    # --------------------------------------------------------------
-    # 5. Evaluation - the two metrics required by the spec (+ bonus R^2)
-    # --------------------------------------------------------------
     y_pred = model.predict(X_test_scaled, verbose=0).flatten()
     mae = mean_absolute_error(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
@@ -223,9 +172,7 @@ def main():
     print(f"RMSE : {rmse:.2f}")
     print(f"R^2  : {r2:.3f}")
 
-    # --------------------------------------------------------------
-    # 6. Save model, scaler, metrics, and a training curve plot
-    # --------------------------------------------------------------
+
     model.save(MODEL_PATH)
     print(f"\nModel saved to {MODEL_PATH}")
     print(f"Scaler saved to {SCALER_PATH}")
